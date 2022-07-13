@@ -355,7 +355,7 @@ def dumpJson(dir,data):
     with open(dir, 'w') as f:
         json.dump(data, f, indent = 4)
 
-CapiBot().run('OTk2MjQ1MzA2Mzk0MDM4MzYz.GIWtp8.5Oo1a3NmOj2kBETRhp5k0a1Rdho0XqsGGub0Bk')
+CapiBot().run('XXX')
 
 #keep_alive()
 #TOKEN = os.environ.get("DISCORD_TOKEN")
