@@ -223,6 +223,7 @@ class CapiBot(discord.Client):
 
                 if ('-challenge' in message.content) and authRole(message.guild,message.author,message.author.roles):
                     log(guild,f'>Llamando el comando privado de: -challenge para {message.author} en el canal {message.channel}',1)
+                    await message.delete()
                     if ('-set' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -challenge: -set para {message.author} en el canal {message.channel}',2)
                         try:
