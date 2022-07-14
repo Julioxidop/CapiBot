@@ -277,7 +277,7 @@ class CapiBot(discord.Client):
                                             log(guild, f'Añadiendo {imageName} a la carpeta con id {i.guild.id}',3)
                                             shutil.copyfileobj(r.raw, f)
                                         img = Image.open(f'./{i.guild.id}/{imageName}')
-                                        img = img.resize((320, 320), Image.ANTIALIAS)
+                                        img = img.resize((320, 320), Image.NEAREST)
                                         img.save(f'./{i.guild.id}/{imageName}')
                                         count += 1
                             await message.author.send(f'Se han conseguido {count} imágenes en el canal challenge **[{message.channel.name}#{message.channel.id}]**')
@@ -307,7 +307,7 @@ class CapiBot(discord.Client):
                             log(guild, f'Añadiendo {imageName} a la carpeta con id {message.guild.id}')
                             shutil.copyfileobj(r.raw, f)
                         img = Image.open(f'./{message.guild.id}/{imageName}')
-                        img = img.resize((320, 320), Image.ANTIALIAS)
+                        img = img.resize((320, 320),Image.NEAREST)
                         img.save(f'./{message.guild.id}/{imageName}')
                 except IndexError as e:
                     log('EXCEPTION',e)
