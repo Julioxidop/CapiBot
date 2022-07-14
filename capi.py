@@ -302,8 +302,8 @@ class CapiBot(discord.Client):
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 #Eliminar pics
                 try:
-                    remove(f'./{message.guild.id}/{message.id}.png')
                     log(guild,f'Quitando {message.id}.png de la carpeta id {message.guild.id}')
+                    remove(f'./{message.guild.id}/{message.id}.png')
                 except Exception as e:
                     log('EXCEPTION',e)
 
