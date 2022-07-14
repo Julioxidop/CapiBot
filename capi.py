@@ -22,14 +22,14 @@ import imageio.v2 as imageio
 ###CAMBIAR CUANDO PASE DE PRUEBA AL ONLINE
 ##Buscar ##CHECK DEBUG para lineas que tengo comentadas para debug
 preventLogExc = True
-capiVersion = 'b1'
+capiVersion = '1.1'
 
 #Log
 logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': True,
 })
-filenamelog = f".\logs\logfile {str(datetime.datetime.now()).replace(':','.')}.txt"
+filenamelog = f"./logs/logfile {str(datetime.datetime.now()).replace(':','.')}.txt"
 logging.basicConfig(level=logging.DEBUG, filename=filenamelog, filemode="a+",
                         format="%(asctime)-15s %(levelname)-8s %(message)s")
 
@@ -223,7 +223,6 @@ class CapiBot(discord.Client):
 
                 if ('-challenge' in message.content) and authRole(message.guild,message.author,message.author.roles):
                     log(guild,f'>Llamando el comando privado de: -challenge para {message.author} en el canal {message.channel}',1)
-                    await message.delete()
                     if ('-set' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -challenge: -set para {message.author} en el canal {message.channel}',2)
                         try:
@@ -256,7 +255,6 @@ class CapiBot(discord.Client):
                             await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** se ha establecido para el servidor **[{message.guild.name}#{message.guild.id}]** como el canal actual del challenge')
                     elif '-gif' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -gif para {message.author} en el canal {message.channel}',2)
-                        await message.delete()
                         time = 1
                         if message.content.find('-time:') != -1:
                             log(guild,f'>Llamando el subcomando privado de -challengeGif: -time para {message.author} en el canal {message.channel}',2)
@@ -389,10 +387,4 @@ def dumpJson(dir,data):
     with open(dir, 'w') as f:
         json.dump(data, f, indent = 4)
 
-
-<<<<<<< Updated upstream
 CapiBot().run('xx')
-
-=======
-CapiBot().run('XX')
->>>>>>> Stashed changes
