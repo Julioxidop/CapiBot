@@ -172,8 +172,8 @@ class CapiBot(discord.Client):
                     if message.content.find('-time:') != -1:
                         log(guild,f'>Llamando el subcomando privado de -challengeGif: -time para {message.author} en el canal {message.channel}',2)
                         time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
-                    if makeGif(guild, message.author, message.channel.name, './images/', './images/output/movie.gif',time):
-                        await message.channel.send(file=discord.File('./images/output/movie.gif'), content='Gif autogenerado por Capi')
+                    if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='Gif autogenerado por Capi')
                         remove(f'./images/output/movie.gif')
 
                 #Comando CAPI, utilizado para el setup de los canales
@@ -210,7 +210,7 @@ class CapiBot(discord.Client):
                             data["challenge"][str(message.guild.id)] = 0
                         if not message.channel.id == data["challenge"][str(message.guild.id)]:
                             data["challenge"][str(message.guild.id)] = message.channel.id
-                            folder = './images'
+                            folder = f'./{message.guild.id}'
                             for filename in os.listdir(folder):
                                 file_path = os.path.join(folder, filename)
                                 try:
@@ -220,7 +220,7 @@ class CapiBot(discord.Client):
                                         shutil.rmtree(file_path)
                                 except Exception as e:
                                     pass
-                            os.mkdir('./images/output')
+                            os.mkdir(f'./{message.guild.id}/output')
                             dumpJson('./res/data.json',data)
                             log(guild,f'>Id {message.channel.id} establecido para la guild {message.guild.id} en data.json',3)
                             c_challenge = loadJson('./res/data.json')["challenge"]
@@ -267,16 +267,24 @@ class CapiBot(discord.Client):
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 ##Guardar pics
                 try:
+                    try:
+                        os.mkdir(f'./{message.guild.id}')
+                    except FileExistsError:
+                        pass
+                    try:
+                        os.mkdir(f'./{message.guild.id}/output')
+                    except FileExistsError:
+                        pass
                     url = message.attachments[0].url
                     if (str(message.author) != str(self.user)) and (url[0:26] == "https://cdn.discordapp.com"):   # look to see if url is from discord
                         r = requests.get(url, stream=True)
                         imageName = f'{message.id}.png'
-                        with open(f'./images/{imageName}', 'wb') as f:
-                            log(guild, f'Añadiendo {imageName} a la carpeta')
+                        with open(f'./{message.guild.id}/{imageName}', 'wb') as f:
+                            log(guild, f'Añadiendo {imageName} a la carpeta con id {message.guild.id}')
                             shutil.copyfileobj(r.raw, f)
-                        img = Image.open(f'./images/{imageName}')
+                        img = Image.open(f'./{message.guild.id}/{imageName}')
                         img = img.resize((320, 320), Image.ANTIALIAS)
-                        img.save(f'./images/{imageName}')
+                        img.save(f'./{message.guild.id}/{imageName}')
                 except IndexError as e:
                     log('EXCEPTION',e)
 
@@ -294,8 +302,8 @@ class CapiBot(discord.Client):
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 #Eliminar pics
                 try:
-                    remove(f'./images/{message.id}.png')
-                    log(guild,f'Quitando {message.id}.png de la carpeta')
+                    remove(f'./{message.guild.id}/{message.id}.png')
+                    log(guild,f'Quitando {message.id}.png de la carpeta id {message.guild.id}')
                 except Exception as e:
                     log('EXCEPTION',e)
 
