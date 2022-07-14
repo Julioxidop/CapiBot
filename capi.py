@@ -174,7 +174,7 @@ class CapiBot(discord.Client):
                         time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
                     if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
                         await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='Gif autogenerado por Capi')
-                        remove(f'./images/output/movie.gif')
+                        remove(f'./{message.guild.id}/output/movie.gif')
 
                 #Comando CAPI, utilizado para el setup de los canales
                 if ('-capi' in message.content) and authRole(message.guild,message.author,message.author.roles):
@@ -205,6 +205,14 @@ class CapiBot(discord.Client):
                         c_capi = loadJson('./res/data.json')["capi"]
                     elif ('-challengeSet' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -capi: -challengeSet para {message.author} en el canal {message.channel}',2)
+                        try:
+                            os.mkdir(f'./{message.guild.id}')
+                        except FileExistsError:
+                            pass
+                        try:
+                            os.mkdir(f'./{message.guild.id}/output')
+                        except FileExistsError:
+                            pass
                         data = loadJson('./res/data.json')
                         if not str(message.guild.id) in list(data["challenge"].keys()):
                             data["challenge"][str(message.guild.id)] = 0
@@ -267,14 +275,6 @@ class CapiBot(discord.Client):
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 ##Guardar pics
                 try:
-                    try:
-                        os.mkdir(f'./{message.guild.id}')
-                    except FileExistsError:
-                        pass
-                    try:
-                        os.mkdir(f'./{message.guild.id}/output')
-                    except FileExistsError:
-                        pass
                     url = message.attachments[0].url
                     if (str(message.author) != str(self.user)) and (url[0:26] == "https://cdn.discordapp.com"):   # look to see if url is from discord
                         r = requests.get(url, stream=True)
@@ -288,7 +288,7 @@ class CapiBot(discord.Client):
                 except IndexError as e:
                     log('EXCEPTION',e)
 
-        except AttributeError as e:
+        except Exception as e:
             log('EXCEPTION',e)
 
     async def on_message_delete(self, message):
@@ -363,7 +363,7 @@ def dumpJson(dir,data):
     with open(dir, 'w') as f:
         json.dump(data, f, indent = 4)
 
-CapiBot().run('OTk2MjQ1MzA2Mzk0MDM4MzYz.GIWtp8.5Oo1a3NmOj2kBETRhp5k0a1Rdho0XqsGGub0Bk')
+CapiBot().run('xx')
 
 #keep_alive()
 #TOKEN = os.environ.get("DISCORD_TOKEN")
