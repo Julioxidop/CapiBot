@@ -21,8 +21,8 @@ import imageio.v2 as imageio
 ###     LA PARTE DEL TOKEN
 ###CAMBIAR CUANDO PASE DE PRUEBA AL ONLINE
 ##Buscar ##CHECK DEBUG para lineas que tengo comentadas para debug
-preventLogExc = True
-capiVersion = '1.1'
+preventLogExc = False
+capiVersion = '1.2'
 
 #Log
 logging.config.dictConfig({
@@ -234,6 +234,11 @@ class CapiBot(discord.Client):
                             os.mkdir(f'./{message.guild.id}/output')
                         except FileExistsError:
                             pass
+                        try:
+                            os.mkdir(f'./{message.guild.id}/podium')
+                        except FileExistsError:
+                            pass
+
                         data = loadJson('./res/data.json')
                         if not str(message.guild.id) in list(data["challenge"].keys()):
                             data["challenge"][str(message.guild.id)] = 0
@@ -250,19 +255,51 @@ class CapiBot(discord.Client):
                                 except Exception as e:
                                     pass
                             os.mkdir(f'./{message.guild.id}/output')
+                            os.mkdir(f'./{message.guild.id}/podium')
                             dumpJson('./res/data.json',data)
                             log(guild,f'>Id {message.channel.id} establecido para la guild {message.guild.id} en data.json',3)
                             c_challenge = loadJson('./res/data.json')["challenge"]
                             await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** se ha establecido para el servidor **[{message.guild.name}#{message.guild.id}]** como el canal actual del challenge')
-                    elif '-gif' in message.content:
-                        log(guild,f'>Llamando el subcomando privado de -challenge: -gif para {message.author} en el canal {message.channel}',2)
+                    elif '-end' in message.content:
+                        log(guild,f'>Llamando el subcomando privado de -challenge: -end para {message.author} en el canal {message.channel}',2)
+                        data = await message.channel.history(limit=200).flatten()
+                        reactions = {}
+                        await message.channel.send(f'**Este challenge se da por finalizado!, gracias por participar a todos! :heart:**')
                         time = 1
                         if message.content.find('-time:') != -1:
                             log(guild,f'>Llamando el subcomando privado de -challengeGif: -time para {message.author} en el canal {message.channel}',2)
                             time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
                         if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
-                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='Gif autogenerado por Capi')
+                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='<<Todos los pixel-arts que participaron>>')
                             remove(f'./{message.guild.id}/output/movie.gif')
+                        #FETCH DATA
+                        for i in data:
+                            count = 0
+                            for j in i.reactions:
+                                count += 1
+                            reactions[i.id] = count
+                        #GET 3 PODIUM
+                        podium = []
+                        for i in list(reactions.keys()):
+                            if len(podium) == 3:
+                                podium = podiumSort(podium,reactions)
+                                print(f'{reactions[i]} > {reactions[podium[2]]}')
+                                if reactions[i] >= reactions[podium[2]]:
+                                    podium[2] = i
+                                    podium = podiumSort(podium,reactions)
+                            if len(podium) < 3:
+                                podium.append(i)
+                        for i in podium:
+                            shutil.move(f'./{message.guild.id}/{i}.png',f'./{message.guild.id}/podium/')
+                        if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/podium/', f'./{message.guild.id}/output/podium.gif',time):
+                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/podium.gif'), content='<<Los pixel-arts destacados>>')
+                            msg1 = await message.channel.fetch_message(podium[0])
+                            msg2 = await message.channel.fetch_message(podium[1])
+                            msg3 = await message.channel.fetch_message(podium[2])
+                            await message.channel.send(f'Felicidades a <@{msg1.author.id}> <@{msg2.author.id}> <@{msg3.author.id}>')
+                            for i in podium:
+                                shutil.move(f'./{message.guild.id}/podium/{i}.png',f'./{message.guild.id}/')
+                            remove(f'./{message.guild.id}/output/podium.gif')
 
                     elif '-fetch' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -gif para {message.author} en el canal {message.channel}',2)
@@ -379,6 +416,36 @@ def makeGif(guild,who,channel,input,output,time):
     except Exception as e:
         log(guild,f'>Error en la solicitud de un gif de {who} para el canal {channel}',3)
         return False
+
+def podiumSort(podium,reactions):
+#Se que es una mamada esta parte pero ya me dio flojera hacerlo mejor xd
+    max = reactions[podium[0]]
+    maxId = podium[0]
+
+    if reactions[podium[1]] >= max:
+        mid = max
+        midId = maxId
+        max = reactions[podium[1]]
+        maxId = podium[1]
+    else:
+        mid = reactions[podium[1]]
+        midId = podium[1]
+
+    if reactions[podium[2]] <= mid:
+        min = reactions[podium[2]]
+        minId = podium[2]
+    else:
+        min = mid
+        minId = midId
+        mid = reactions[podium[2]]
+        midId = podium[2]
+        if reactions[podium[2]] >= max:
+            mid = max
+            midId = maxId
+            max = reactions[podium[2]]
+            maxId = podium[2]
+
+    return [maxId,midId,minId]
 
 def loadJson(dir):
     with open(dir, 'r') as f:
