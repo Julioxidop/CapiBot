@@ -164,17 +164,6 @@ class CapiBot(discord.Client):
                     await message.author.send(f'         >ROLES\n{message.guild.roles}')
                     await message.author.send(f'         >DATOS\n{loadJson("./res/data.json")}')
 
-                #Crear el gif de challenge
-                if ('-challengeGif' in message.content) and authRole(message.guild,message.author,message.author.roles):
-                    log(guild,f'>Llamando el comando privado de: -challengeGif para {message.author} en el canal {message.channel}',1)
-                    await message.delete()
-                    time = 1
-                    if message.content.find('-time:') != -1:
-                        log(guild,f'>Llamando el subcomando privado de -challengeGif: -time para {message.author} en el canal {message.channel}',2)
-                        time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
-                    if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
-                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='Gif autogenerado por Capi')
-                        remove(f'./{message.guild.id}/output/movie.gif')
 
                 #Comando CAPI, utilizado para el setup de los canales
                 if ('-capi' in message.content) and authRole(message.guild,message.author,message.author.roles):
@@ -203,36 +192,6 @@ class CapiBot(discord.Client):
                         else:
                             log(guild,f'>Id {message.id} rechazada en el eliminado en capi de data.json',3)
                         c_capi = loadJson('./res/data.json')["capi"]
-                    elif ('-challengeSet' in message.content):
-                        log(guild,f'>Llamando el subcomando privado de -capi: -challengeSet para {message.author} en el canal {message.channel}',2)
-                        try:
-                            os.mkdir(f'./{message.guild.id}')
-                        except FileExistsError:
-                            pass
-                        try:
-                            os.mkdir(f'./{message.guild.id}/output')
-                        except FileExistsError:
-                            pass
-                        data = loadJson('./res/data.json')
-                        if not str(message.guild.id) in list(data["challenge"].keys()):
-                            data["challenge"][str(message.guild.id)] = 0
-                        if not message.channel.id == data["challenge"][str(message.guild.id)]:
-                            data["challenge"][str(message.guild.id)] = message.channel.id
-                            folder = f'./{message.guild.id}'
-                            for filename in os.listdir(folder):
-                                file_path = os.path.join(folder, filename)
-                                try:
-                                    if os.path.isfile(file_path) or os.path.islink(file_path):
-                                        os.unlink(file_path)
-                                    elif os.path.isdir(file_path):
-                                        shutil.rmtree(file_path)
-                                except Exception as e:
-                                    pass
-                            os.mkdir(f'./{message.guild.id}/output')
-                            dumpJson('./res/data.json',data)
-                            log(guild,f'>Id {message.channel.id} establecido para la guild {message.guild.id} en data.json',3)
-                            c_challenge = loadJson('./res/data.json')["challenge"]
-                            await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** se ha establecido para el servidor **[{message.guild.name}#{message.guild.id}]** como el canal actual del challenge')
 
                     elif ('-pngAdd' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -capi: -pngAdd para {message.author} en el canal {message.channel}',2)
@@ -261,6 +220,73 @@ class CapiBot(discord.Client):
 
                     else:
                         await message.author.send('El comando -capi requiere de un subcomando válido para operar. Consulta el manual de usuario.')
+
+                if ('-challenge' in message.content) and authRole(message.guild,message.author,message.author.roles):
+                    log(guild,f'>Llamando el comando privado de: -challenge para {message.author} en el canal {message.channel}',1)
+                    await message.delete()
+                    if ('-set' in message.content):
+                        log(guild,f'>Llamando el subcomando privado de -challenge: -set para {message.author} en el canal {message.channel}',2)
+                        try:
+                            os.mkdir(f'./{message.guild.id}')
+                        except FileExistsError:
+                            pass
+                        try:
+                            os.mkdir(f'./{message.guild.id}/output')
+                        except FileExistsError:
+                            pass
+                        data = loadJson('./res/data.json')
+                        if not str(message.guild.id) in list(data["challenge"].keys()):
+                            data["challenge"][str(message.guild.id)] = 0
+                        if not message.channel.id == data["challenge"][str(message.guild.id)]:
+                            data["challenge"][str(message.guild.id)] = message.channel.id
+                            folder = f'./{message.guild.id}'
+                            for filename in os.listdir(folder):
+                                file_path = os.path.join(folder, filename)
+                                try:
+                                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                                        os.unlink(file_path)
+                                    elif os.path.isdir(file_path):
+                                        shutil.rmtree(file_path)
+                                except Exception as e:
+                                    pass
+                            os.mkdir(f'./{message.guild.id}/output')
+                            dumpJson('./res/data.json',data)
+                            log(guild,f'>Id {message.channel.id} establecido para la guild {message.guild.id} en data.json',3)
+                            c_challenge = loadJson('./res/data.json')["challenge"]
+                            await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** se ha establecido para el servidor **[{message.guild.name}#{message.guild.id}]** como el canal actual del challenge')
+                    elif '-gif' in message.content:
+                        log(guild,f'>Llamando el subcomando privado de -challenge: -gif para {message.author} en el canal {message.channel}',2)
+                        await message.delete()
+                        time = 1
+                        if message.content.find('-time:') != -1:
+                            log(guild,f'>Llamando el subcomando privado de -challengeGif: -time para {message.author} en el canal {message.channel}',2)
+                            time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
+                        if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
+                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='Gif autogenerado por Capi')
+                            remove(f'./{message.guild.id}/output/movie.gif')
+
+                    elif '-fetch' in message.content:
+                        log(guild,f'>Llamando el subcomando privado de -challenge: -gif para {message.author} en el canal {message.channel}',2)
+                        data = await message.channel.history(limit=200).flatten()
+                        count = 0
+                        try:
+                            for i in data:
+                                for j in i.attachments:
+                                    if j.url[0:26] == "https://cdn.discordapp.com":
+                                        r = requests.get(j, stream=True)
+                                        imageName = f'{i.id}.png'
+                                        with open(f'./{i.guild.id}/{imageName}', 'wb') as f:
+                                            log(guild, f'Añadiendo {imageName} a la carpeta con id {i.guild.id}',3)
+                                            shutil.copyfileobj(r.raw, f)
+                                        img = Image.open(f'./{i.guild.id}/{imageName}')
+                                        img = img.resize((320, 320), Image.ANTIALIAS)
+                                        img.save(f'./{i.guild.id}/{imageName}')
+                                        count += 1
+                            await message.author.send(f'Se han conseguido {count} imágenes en el canal challenge **[{message.channel.name}#{message.channel.id}]**')
+                        except FileNotFoundError:
+                            await message.author.send('Primero establece el canal como un canal challenge usando el comando: capi -challenge -set')
+                    else:
+                        await message.author.send('El comando -challenge requiere de un subcomando válido para operar. Consulta el manual de usuario.')
 
         except AttributeError as e:
             log('EXCEPTION',e)
@@ -307,7 +333,7 @@ class CapiBot(discord.Client):
                 except Exception as e:
                     log('EXCEPTION',e)
 
-        except AttributeError as e:
+        except Exception as e:
             log('EXCEPTION',e)
 
 def log(guild,input,ident=0):
@@ -364,5 +390,9 @@ def dumpJson(dir,data):
         json.dump(data, f, indent = 4)
 
 
+<<<<<<< Updated upstream
 CapiBot().run('xx')
 
+=======
+CapiBot().run('XX')
+>>>>>>> Stashed changes
