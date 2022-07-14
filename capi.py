@@ -163,9 +163,6 @@ class CapiBot(discord.Client):
                     await message.author.send(f'         >CANALES\n{message.guild.text_channels}')
                     await message.author.send(f'         >ROLES\n{message.guild.roles}')
                     await message.author.send(f'         >DATOS\n{loadJson("./res/data.json")}')
-                    await message.author.send(f'         >ITEMS\n{c_items}')
-                    await message.author.send(f'         >TAMAÑOS\n{c_sizes}')
-                    await message.author.send(f'         >PALETAS\n{c_palettes}')
 
                 #Crear el gif de challenge
                 if ('-challengeGif' in message.content) and authRole(message.guild,message.author,message.author.roles):
