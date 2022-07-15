@@ -225,8 +225,8 @@ class CapiBot(discord.Client):
                 if ('-challenge' in message.content) and authRole(message.guild,message.author,message.author.roles):
                     log(guild,f'>Llamando el comando privado de: -challenge para {message.author} en el canal {message.channel}',1)
                     await message.delete()
-                    if ('-set' in message.content):
-                        log(guild,f'>Llamando el subcomando privado de -challenge: -set para {message.author} en el canal {message.channel}',2)
+                    if ('-start' in message.content):
+                        log(guild,f'>Llamando el subcomando privado de -challenge: -start para {message.author} en el canal {message.channel}',2)
                         try:
                             os.mkdir(f'./{message.guild.id}')
                         except FileExistsError:
@@ -329,7 +329,7 @@ class CapiBot(discord.Client):
                         remove(f'./{message.guild.id}/podium/podium.png')
 
                     elif '-fetch' in message.content:
-                        log(guild,f'>Llamando el subcomando privado de -challenge: -gif para {message.author} en el canal {message.channel}',2)
+                        log(guild,f'>Llamando el subcomando privado de -challenge: -fetch para {message.author} en el canal {message.channel}',2)
                         data = await message.channel.history(limit=200).flatten()
                         count = 0
                         try:
