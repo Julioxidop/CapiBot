@@ -292,7 +292,7 @@ class CapiBot(discord.Client):
                                     pass
                         new.save(f'./{message.guild.id}/output/collage.png')
                         await message.channel.send(file=discord.File(f'./{message.guild.id}/output/collage.png'), content='')
-
+                        remove(f'./{message.guild.id}/output/collage.png')
                         #FETCH DATA
                         reactions = {}
                         data = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
