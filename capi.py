@@ -270,7 +270,7 @@ class CapiBot(discord.Client):
                             log(guild,f'>Llamando el subcomando privado de -challengeGif: -time para {message.author} en el canal {message.channel}',2)
                             time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
                         if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
-                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='<<Todos los pixel-arts que participaron>>')
+                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='')
                             remove(f'./{message.guild.id}/output/movie.gif')
                         images = []
                         filenames = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
@@ -280,12 +280,13 @@ class CapiBot(discord.Client):
                             images.append(img)
                         columns = math.floor(math.sqrt(len(filenames)))
                         rows = columns + math.ceil((len(filenames) - columns**2) / columns)
-                        new = Image.new("RGBA", (160*columns,160*rows))
+                        new = Image.new("RGBA", (160*(columns+2),160*(rows+3)), (239, 249, 214))
+                        new.paste(Image.open('./res/textOverlay.png'), (math.floor(((160*(columns+2))/2)-250),80))
                         current = 0
                         for x in range(0,rows):
                             for y in range(0,columns):
                                 try:
-                                    new.paste(images[current], (y*160,x*160))
+                                    new.paste(images[current], ((y*160)+160,(x*160)+320))
                                     current+=1
                                 except Exception:
                                     pass
@@ -321,7 +322,7 @@ class CapiBot(discord.Client):
                         new.paste(Image.open(f'./{message.guild.id}/{podium[2]}.png'), (1120,320))
                         new.save(f'./{message.guild.id}/podium/podium.png')
 
-                        await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='<<Los pixel-arts destacados>>')
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='‎\n**<<Los pixel-arts destacados por voto popular>>**\n‎')
                         msg1 = await message.channel.fetch_message(podium[0])
                         msg2 = await message.channel.fetch_message(podium[1])
                         msg3 = await message.channel.fetch_message(podium[2])
