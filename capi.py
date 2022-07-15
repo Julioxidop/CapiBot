@@ -7,6 +7,7 @@ import datetime
 import logging
 import logging.config
 import json
+import math
 
 ##LIBRERIAS PARA EL GIF
 import requests
@@ -262,8 +263,7 @@ class CapiBot(discord.Client):
                             await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** se ha establecido para el servidor **[{message.guild.name}#{message.guild.id}]** como el canal actual del challenge')
                     elif '-end' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -end para {message.author} en el canal {message.channel}',2)
-                        data = await message.channel.history(limit=200).flatten()
-                        reactions = {}
+
                         await message.channel.send(f'**Este challenge se da por finalizado!, gracias por participar a todos! :heart:**')
                         time = 1
                         if message.content.find('-time:') != -1:
@@ -272,34 +272,61 @@ class CapiBot(discord.Client):
                         if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
                             await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='<<Todos los pixel-arts que participaron>>')
                             remove(f'./{message.guild.id}/output/movie.gif')
+                        images = []
+                        filenames = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
+                        for i in filenames:
+                            img = Image.open(f'./{message.guild.id}/{i}')
+                            img = img.resize((160, 160),Image.NEAREST)
+                            images.append(img)
+                        columns = math.floor(math.sqrt(len(filenames)))
+                        rows = columns + math.ceil((len(filenames) - columns**2) / columns)
+                        new = Image.new("RGBA", (160*columns,160*rows))
+                        current = 0
+                        for x in range(0,rows):
+                            for y in range(0,columns):
+                                try:
+                                    new.paste(images[current], (y*160,x*160))
+                                    current+=1
+                                except Exception:
+                                    pass
+                        new.save(f'./{message.guild.id}/output/collage.png')
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/collage.png'), content='')
+
                         #FETCH DATA
+                        reactions = {}
+                        data = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
+                        data = [int(x.replace('.png',''))for x in data]
                         for i in data:
                             count = 0
-                            for j in i.reactions:
+                            work = await message.channel.fetch_message(i)
+                            for j in work.reactions:
                                 count += 1
-                            reactions[i.id] = count
+                            reactions[i] = count
+
                         #GET 3 PODIUM
                         podium = []
                         for i in list(reactions.keys()):
                             if len(podium) == 3:
                                 podium = podiumSort(podium,reactions)
-                                print(f'{reactions[i]} > {reactions[podium[2]]}')
                                 if reactions[i] >= reactions[podium[2]]:
                                     podium[2] = i
                                     podium = podiumSort(podium,reactions)
                             if len(podium) < 3:
                                 podium.append(i)
-                        for i in podium:
-                            shutil.move(f'./{message.guild.id}/{i}.png',f'./{message.guild.id}/podium/')
-                        if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/podium/', f'./{message.guild.id}/output/podium.gif',time):
-                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/podium.gif'), content='<<Los pixel-arts destacados>>')
-                            msg1 = await message.channel.fetch_message(podium[0])
-                            msg2 = await message.channel.fetch_message(podium[1])
-                            msg3 = await message.channel.fetch_message(podium[2])
-                            await message.channel.send(f'Felicidades a <@{msg1.author.id}> <@{msg2.author.id}> <@{msg3.author.id}>')
-                            for i in podium:
-                                shutil.move(f'./{message.guild.id}/podium/{i}.png',f'./{message.guild.id}/')
-                            remove(f'./{message.guild.id}/output/podium.gif')
+
+                        new = Image.new("RGBA", (1600,960))
+                        new.paste(Image.open(f'./res/Overlay.png'), (0,0))
+                        new.paste(Image.open(f'./{message.guild.id}/{podium[0]}.png'), (640,160))
+                        new.paste(Image.open(f'./{message.guild.id}/{podium[1]}.png'), (160,320))
+                        new.paste(Image.open(f'./{message.guild.id}/{podium[2]}.png'), (1120,320))
+                        new.save(f'./{message.guild.id}/podium/podium.png')
+
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='<<Los pixel-arts destacados>>')
+                        msg1 = await message.channel.fetch_message(podium[0])
+                        msg2 = await message.channel.fetch_message(podium[1])
+                        msg3 = await message.channel.fetch_message(podium[2])
+                        await message.channel.send(f'Felicidades a <@{msg1.author.id}> <@{msg2.author.id}> <@{msg3.author.id}>')
+                        remove(f'./{message.guild.id}/podium/podium.png')
 
                     elif '-fetch' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -gif para {message.author} en el canal {message.channel}',2)
