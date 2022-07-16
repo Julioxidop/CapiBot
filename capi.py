@@ -170,6 +170,7 @@ class CapiBot(discord.Client):
                 if ('-capi' in message.content) and authRole(message.guild,message.author,message.author.roles):
                     log(guild,f'>Llamando el comando privado de: -capi para {message.author} en el canal {message.channel}',1)
                     await message.delete()
+                    ##AÑADIR CANAL CAPI
                     if ('-capiAdd' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -capi: -capiAdd para {message.author} en el canal {message.channel}',2)
                         data = loadJson('./res/data.json')
@@ -182,6 +183,7 @@ class CapiBot(discord.Client):
                             log(guild,f'>Id {message.id} rechazada en el guardado en capi de data.json',3)
                             await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** ya está establecido como un canal Capi')
                         c_capi = loadJson('./res/data.json')["capi"]
+                    #QUITAR CANAL CAPI
                     elif ('-capiDel' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -capi: -capiDel para {message.author} en el canal {message.channel}',2)
                         data = loadJson('./res/data.json')
@@ -193,7 +195,7 @@ class CapiBot(discord.Client):
                         else:
                             log(guild,f'>Id {message.id} rechazada en el eliminado en capi de data.json',3)
                         c_capi = loadJson('./res/data.json')["capi"]
-
+                    #AÑADIR CANAL PNGONLY
                     elif ('-pngAdd' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -capi: -pngAdd para {message.author} en el canal {message.channel}',2)
                         data = loadJson('./res/data.json')
@@ -206,7 +208,7 @@ class CapiBot(discord.Client):
                             log(guild,f'>Id {message.id} rechazada en el guardado en pngOnly de data.json',3)
                             await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** ya está establecido como un canal pngOnly')
                         c_pngOnly = loadJson('./res/data.json')["pngOnly"]
-
+                    #QUITAR CANAL PNGONLY
                     elif ('-pngDel' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -capi: -pngDel para {message.author} en el canal {message.channel}',2)
                         data = loadJson('./res/data.json')
@@ -218,13 +220,15 @@ class CapiBot(discord.Client):
                         else:
                             log(guild,f'>Id {message.id} rechazada en el eliminado en pngOnly de data.json',3)
                         c_pngOnly = loadJson('./res/data.json')["pngOnly"]
-
+                    #LLAMADO CUANDO NO SE ESCRIBE UN SUBCOMANDO VALIDO
                     else:
                         await message.author.send('El comando -capi requiere de un subcomando válido para operar. Consulta el manual de usuario.')
 
+                #COMANDO PARA ESTABLECER COMPORTAMIENTOS DE LOS CHALLENGE
                 if ('-challenge' in message.content) and authRole(message.guild,message.author,message.author.roles):
                     log(guild,f'>Llamando el comando privado de: -challenge para {message.author} en el canal {message.channel}',1)
                     await message.delete()
+                    #ESTABLECER LA CONFIGURACION INICIAL DEL CANAL CHALLENGE
                     if ('-start' in message.content):
                         log(guild,f'>Llamando el subcomando privado de -challenge: -start para {message.author} en el canal {message.channel}',2)
                         try:
@@ -239,7 +243,6 @@ class CapiBot(discord.Client):
                             os.mkdir(f'./{message.guild.id}/podium')
                         except FileExistsError:
                             pass
-
                         data = loadJson('./res/data.json')
                         if not str(message.guild.id) in list(data["challenge"].keys()):
                             data["challenge"][str(message.guild.id)] = 0
@@ -261,16 +264,15 @@ class CapiBot(discord.Client):
                             log(guild,f'>Id {message.channel.id} establecido para la guild {message.guild.id} en data.json',3)
                             c_challenge = loadJson('./res/data.json')["challenge"]
                             await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** se ha establecido para el servidor **[{message.guild.name}#{message.guild.id}]** como el canal actual del challenge')
+                    #COMPORTAMIENTO CUANDO SE TERMINA EL CHALLENGE
                     elif '-end' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -end para {message.author} en el canal {message.channel}',2)
-
-                        await message.channel.send(f'**Este challenge se da por finalizado!, gracias por participar a todos! :heart:**')
                         time = 1
                         if message.content.find('-time:') != -1:
-                            log(guild,f'>Llamando el subcomando privado de -challengeGif: -time para {message.author} en el canal {message.channel}',2)
+                            log(guild,f'>Llamando el subcomando privado de -challenge: -end -time para {message.author} en el canal {message.channel}',2)
                             time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
                         if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
-                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='')
+                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='**:heart: Este challenge se da por finalizado. ¡Gracias por participar a todos! :heart:**')
                             remove(f'./{message.guild.id}/output/movie.gif')
                         images = []
                         filenames = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
@@ -326,7 +328,7 @@ class CapiBot(discord.Client):
                         msg1 = await message.channel.fetch_message(podium[0])
                         msg2 = await message.channel.fetch_message(podium[1])
                         msg3 = await message.channel.fetch_message(podium[2])
-                        await message.channel.send(f'Felicidades a <@{msg1.author.id}> <@{msg2.author.id}> <@{msg3.author.id}>')
+                        await message.channel.send(f'Felicidades a [:first_place:]<@{msg1.author.id}> [:second_place:]<@{msg2.author.id}> [:third_place:]<@{msg3.author.id}>')
                         remove(f'./{message.guild.id}/podium/podium.png')
 
                     elif '-fetch' in message.content:
@@ -446,34 +448,22 @@ def makeGif(guild,who,channel,input,output,time):
         return False
 
 def podiumSort(podium,reactions):
-#Se que es una mamada esta parte pero ya me dio flojera hacerlo mejor xd
-    max = reactions[podium[0]]
-    maxId = podium[0]
-
-    if reactions[podium[1]] >= max:
-        mid = max
-        midId = maxId
-        max = reactions[podium[1]]
-        maxId = podium[1]
-    else:
-        mid = reactions[podium[1]]
-        midId = podium[1]
-
-    if reactions[podium[2]] <= mid:
-        min = reactions[podium[2]]
-        minId = podium[2]
-    else:
-        min = mid
-        minId = midId
-        mid = reactions[podium[2]]
-        midId = podium[2]
-        if reactions[podium[2]] >= max:
-            mid = max
-            midId = maxId
-            max = reactions[podium[2]]
-            maxId = podium[2]
-
-    return [maxId,midId,minId]
+    sorted = [0,0,0]
+    max = 0
+    for i in podium:
+        if reactions[i] >= max:
+            max = reactions[i]
+            sorted[0] = i
+    mid = 0
+    for i in podium:
+        if not i in sorted:
+            if reactions[i] >= mid:
+                mid = reactions[i]
+                sorted[1] = i
+    for i in podium:
+        if not i in sorted:
+            sorted[2] = i
+    return sorted
 
 def loadJson(dir):
     with open(dir, 'r') as f:
@@ -483,4 +473,4 @@ def dumpJson(dir,data):
     with open(dir, 'w') as f:
         json.dump(data, f, indent = 4)
 
-CapiBot().run('xx')
+CapiBot().run('OTk2MjQ1MzA2Mzk0MDM4MzYz.Gypk3m.BiWnR6hxAw8HzIN2XI3iRcwLc6j6rqbu_ZiBVI')
