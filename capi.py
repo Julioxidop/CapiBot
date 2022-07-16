@@ -325,13 +325,13 @@ class CapiBot(discord.Client):
                         msg3 = await message.channel.fetch_message(podium[2])
 
                         #OUTPUT
-                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='**:heart: Este challenge se da por finalizado. ¡Gracias por participar a todos! :heart:**')
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='**:heart: Este challenge se da por finalizado. ¡Gracias por participar a todos! :heart:**\n‎')
                         remove(f'./{message.guild.id}/output/movie.gif')
                         await message.channel.send(file=discord.File(f'./{message.guild.id}/output/collage.png'), content='')
                         remove(f'./{message.guild.id}/output/collage.png')
                         await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='‎\n**<<Los pixel-arts destacados por voto popular>>**\n‎')
                         remove(f'./{message.guild.id}/podium/podium.png')
-                        await message.channel.send(f'Felicidades a [:first_place:]<@{msg1.author.id}> [:second_place:]<@{msg2.author.id}> [:third_place:]<@{msg3.author.id}>')
+                        await message.channel.send(f'‎\nFelicidades a [:first_place:]<@{msg1.author.id}> [:second_place:]<@{msg2.author.id}> [:third_place:]<@{msg3.author.id}>')
 
                     elif '-fetch' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -fetch para {message.author} en el canal {message.channel}',2)
