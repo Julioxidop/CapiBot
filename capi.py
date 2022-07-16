@@ -369,6 +369,7 @@ class CapiBot(discord.Client):
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 ##Guardar pics
                 try:
+                    await message.add_reaction('❤')
                     url = message.attachments[0].url
                     if (str(message.author) != str(self.user)) and (url[0:26] == "https://cdn.discordapp.com"):   # look to see if url is from discord
                         r = requests.get(url, stream=True)
