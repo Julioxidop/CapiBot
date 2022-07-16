@@ -23,7 +23,7 @@ import imageio.v2 as imageio
 ###CAMBIAR CUANDO PASE DE PRUEBA AL ONLINE
 ##Buscar ##CHECK DEBUG para lineas que tengo comentadas para debug
 preventLogExc = False
-capiVersion = '1.2'
+capiVersion = '1.3'
 
 #Log
 logging.config.dictConfig({
@@ -271,9 +271,10 @@ class CapiBot(discord.Client):
                         if message.content.find('-time:') != -1:
                             log(guild,f'>Llamando el subcomando privado de -challenge: -end -time para {message.author} en el canal {message.channel}',2)
                             time = float(message.content[message.content.find('-time:')+6:message.content.find('-time:')+9])
-                        if makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time):
-                            await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='**:heart: Este challenge se da por finalizado. ¡Gracias por participar a todos! :heart:**')
-                            remove(f'./{message.guild.id}/output/movie.gif')
+                        await message.author.send('Ejecutando -end, podría tardar unos momentos en cargar resultados!')
+                        #GIF
+                        makeGif(guild, message.author, message.channel.name, f'./{message.guild.id}/', f'./{message.guild.id}/output/movie.gif',time)
+                        #COLLAGE
                         images = []
                         filenames = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
                         for i in filenames:
@@ -293,8 +294,6 @@ class CapiBot(discord.Client):
                                 except Exception:
                                     pass
                         new.save(f'./{message.guild.id}/output/collage.png')
-                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/collage.png'), content='')
-                        remove(f'./{message.guild.id}/output/collage.png')
                         #FETCH DATA
                         reactions = {}
                         data = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
@@ -305,7 +304,6 @@ class CapiBot(discord.Client):
                             for j in work.reactions:
                                 count += 1
                             reactions[i] = count
-
                         #GET 3 PODIUM
                         podium = []
                         for i in list(reactions.keys()):
@@ -316,20 +314,24 @@ class CapiBot(discord.Client):
                                     podium = podiumSort(podium,reactions)
                             if len(podium) < 3:
                                 podium.append(i)
-
                         new = Image.new("RGBA", (1600,960))
                         new.paste(Image.open(f'./res/Overlay.png'), (0,0))
                         new.paste(Image.open(f'./{message.guild.id}/{podium[0]}.png'), (640,160))
                         new.paste(Image.open(f'./{message.guild.id}/{podium[1]}.png'), (160,320))
                         new.paste(Image.open(f'./{message.guild.id}/{podium[2]}.png'), (1120,320))
                         new.save(f'./{message.guild.id}/podium/podium.png')
-
-                        await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='‎\n**<<Los pixel-arts destacados por voto popular>>**\n‎')
                         msg1 = await message.channel.fetch_message(podium[0])
                         msg2 = await message.channel.fetch_message(podium[1])
                         msg3 = await message.channel.fetch_message(podium[2])
-                        await message.channel.send(f'Felicidades a [:first_place:]<@{msg1.author.id}> [:second_place:]<@{msg2.author.id}> [:third_place:]<@{msg3.author.id}>')
+
+                        #OUTPUT
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='**:heart: Este challenge se da por finalizado. ¡Gracias por participar a todos! :heart:**')
+                        remove(f'./{message.guild.id}/output/movie.gif')
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/output/collage.png'), content='')
+                        remove(f'./{message.guild.id}/output/collage.png')
+                        await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='‎\n**<<Los pixel-arts destacados por voto popular>>**\n‎')
                         remove(f'./{message.guild.id}/podium/podium.png')
+                        await message.channel.send(f'Felicidades a [:first_place:]<@{msg1.author.id}> [:second_place:]<@{msg2.author.id}> [:third_place:]<@{msg3.author.id}>')
 
                     elif '-fetch' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -fetch para {message.author} en el canal {message.channel}',2)
@@ -358,11 +360,11 @@ class CapiBot(discord.Client):
             log('EXCEPTION',e)
 
 
-        """
-        Interacción en el canal challenge, donde las imagenes subidas se reescalan y guardan para su
-        posterior uso
-        """
         try:
+            """
+            Interacción en el canal challenge, donde las imagenes subidas se reescalan y guardan para su
+            posterior uso
+            """
             ##Para el canal de challenge
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 ##Guardar pics
@@ -473,4 +475,4 @@ def dumpJson(dir,data):
     with open(dir, 'w') as f:
         json.dump(data, f, indent = 4)
 
-CapiBot().run('OTk2MjQ1MzA2Mzk0MDM4MzYz.Gypk3m.BiWnR6hxAw8HzIN2XI3iRcwLc6j6rqbu_ZiBVI')
+CapiBot().run('xx')
