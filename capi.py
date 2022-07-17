@@ -306,53 +306,58 @@ class CapiBot(discord.Client):
                             reactions[i] = count
                         #GET 3 PODIUM
                         podium = []
-                        for i in list(reactions.keys()):
-                            if len(podium) == 3:
-                                podium = podiumSort(podium,reactions)
-                                if reactions[i] >= reactions[podium[2]]:
-                                    podium[2] = i
+                        if len(list(reactions.keys())) >= 3:
+                            for i in list(reactions.keys()):
+                                if len(podium) == 3:
                                     podium = podiumSort(podium,reactions)
-                            if len(podium) < 3:
-                                podium.append(i)
-                        new = Image.new("RGBA", (1600,960))
-                        new.paste(Image.open(f'./res/Overlay.png'), (0,0))
-                        new.paste(Image.open(f'./{message.guild.id}/{podium[0]}.png'), (640,160))
-                        new.paste(Image.open(f'./{message.guild.id}/{podium[1]}.png'), (160,320))
-                        new.paste(Image.open(f'./{message.guild.id}/{podium[2]}.png'), (1120,320))
-                        new.save(f'./{message.guild.id}/podium/podium.png')
-                        msg1 = await message.channel.fetch_message(podium[0])
-                        msg2 = await message.channel.fetch_message(podium[1])
-                        msg3 = await message.channel.fetch_message(podium[2])
-
+                                    if reactions[i] >= reactions[podium[2]]:
+                                        podium[2] = i
+                                        podium = podiumSort(podium,reactions)
+                                if len(podium) < 3:
+                                    podium.append(i)
+                            new = Image.new("RGBA", (1600,960))
+                            new.paste(Image.open(f'./res/Overlay.png'), (0,0))
+                            new.paste(Image.open(f'./{message.guild.id}/{podium[0]}.png'), (640,160))
+                            new.paste(Image.open(f'./{message.guild.id}/{podium[1]}.png'), (160,320))
+                            new.paste(Image.open(f'./{message.guild.id}/{podium[2]}.png'), (1120,320))
+                            new.save(f'./{message.guild.id}/podium/podium.png')
+                            msg1 = await message.channel.fetch_message(podium[0])
+                            msg2 = await message.channel.fetch_message(podium[1])
+                            msg3 = await message.channel.fetch_message(podium[2])
+                        else:
+                            await message.author.send('No hay suficientes imágenes para hacer un podium')
                         #OUTPUT
                         await message.channel.send(file=discord.File(f'./{message.guild.id}/output/movie.gif'), content='**:heart: Este challenge se da por finalizado. ¡Gracias por participar a todos! :heart:**\n‎')
                         remove(f'./{message.guild.id}/output/movie.gif')
                         await message.channel.send(file=discord.File(f'./{message.guild.id}/output/collage.png'), content='')
                         remove(f'./{message.guild.id}/output/collage.png')
-                        await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='‎\n**<<Los pixel-arts destacados por voto popular>>**\n‎')
-                        remove(f'./{message.guild.id}/podium/podium.png')
-                        await message.channel.send(f'‎\nFelicidades a [:first_place:]<@{msg1.author.id}> [:second_place:]<@{msg2.author.id}> [:third_place:]<@{msg3.author.id}>')
+                        if len(list(reactions.keys())) >= 3:
+                            await message.channel.send(file=discord.File(f'./{message.guild.id}/podium/podium.png'), content='‎\n**<<Los pixel-arts destacados por voto popular>>**\n‎')
+                            remove(f'./{message.guild.id}/podium/podium.png')
+                            await message.channel.send(f'‎\nFelicidades a [:first_place:]<@{msg1.author.id}> [:second_place:]<@{msg2.author.id}> [:third_place:]<@{msg3.author.id}>')
 
                     elif '-fetch' in message.content:
                         log(guild,f'>Llamando el subcomando privado de -challenge: -fetch para {message.author} en el canal {message.channel}',2)
                         data = await message.channel.history(limit=200).flatten()
                         count = 0
                         try:
+                            filenames = [f for f in listdir(f'./{message.guild.id}/') if isfile(join(f'./{message.guild.id}/', f))]
                             for i in data:
-                                url = i.attachments[0].url
-                                if formatValid(url,jpg=True):
-                                    r = requests.get(url, stream=True)
-                                    imageName = f'{i.id}.png'
-                                    with open(f'./{i.guild.id}/{imageName}', 'wb') as f:
-                                        log(guild, f'Añadiendo {imageName} a la carpeta con id {i.guild.id}',3)
-                                        shutil.copyfileobj(r.raw, f)
-                                    img = Image.open(f'./{i.guild.id}/{imageName}')
-                                    img = img.resize((320, 320), Image.NEAREST)
-                                    img.save(f'./{i.guild.id}/{imageName}')
-                                    count += 1
-                            await message.author.send(f'Se han conseguido {count} imágenes en el canal challenge **[{message.channel.name}#{message.channel.id}]**')
+                                if not f'{i.id}.png' in filenames:
+                                    url = i.attachments[0].url
+                                    if formatValid(url,jpg=True):
+                                        r = requests.get(url, stream=True)
+                                        imageName = f'{i.id}.png'
+                                        with open(f'./{i.guild.id}/{imageName}', 'wb') as f:
+                                            log(guild, f'Añadiendo {imageName} a la carpeta con id {i.guild.id}',3)
+                                            shutil.copyfileobj(r.raw, f)
+                                        img = Image.open(f'./{i.guild.id}/{imageName}')
+                                        img = img.resize((320, 320), Image.NEAREST)
+                                        img.save(f'./{i.guild.id}/{imageName}')
+                                        count += 1
+                            await message.author.send(f'Se han conseguido {count} imágenes nuevas en el canal challenge **[{message.channel.name}#{message.channel.id}]**')
                         except FileNotFoundError:
-                            await message.author.send('Primero establece el canal como un canal challenge usando el comando: capi -challenge -set')
+                            await message.author.send('Primero establece el canal como un canal challenge usando el comando: capi -challenge -start')
                     else:
                         await message.author.send('El comando -challenge requiere de un subcomando válido para operar. Consulta el manual de usuario.')
 
@@ -395,12 +400,14 @@ class CapiBot(discord.Client):
         try:
             ##Para el canal de challenge
             if message.channel.id == c_challenge[str(message.guild.id)]:
-                #Eliminar pics
-                try:
-                    log(message.guild,f'Quitando {message.id}.png de la carpeta id {message.guild.id}')
-                    remove(f'./{message.guild.id}/{message.id}.png')
-                except Exception as e:
-                    log('EXCEPTION',e)
+                url = message.attachments[0].url
+                if formatValid(url,jpg=True):
+                    #Eliminar pics
+                    try:
+                        log(message.guild,f'Quitando {message.id}.png de la carpeta id {message.guild.id}')
+                        remove(f'./{message.guild.id}/{message.id}.png')
+                    except Exception as e:
+                        log('EXCEPTION',e)
 
         except Exception as e:
             log('EXCEPTION',e)
