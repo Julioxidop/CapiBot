@@ -339,17 +339,17 @@ class CapiBot(discord.Client):
                         count = 0
                         try:
                             for i in data:
-                                for j in i.attachments:
-                                    if j.url[0:26] == "https://cdn.discordapp.com":
-                                        r = requests.get(j, stream=True)
-                                        imageName = f'{i.id}.png'
-                                        with open(f'./{i.guild.id}/{imageName}', 'wb') as f:
-                                            log(guild, f'Añadiendo {imageName} a la carpeta con id {i.guild.id}',3)
-                                            shutil.copyfileobj(r.raw, f)
-                                        img = Image.open(f'./{i.guild.id}/{imageName}')
-                                        img = img.resize((320, 320), Image.NEAREST)
-                                        img.save(f'./{i.guild.id}/{imageName}')
-                                        count += 1
+                                url = i.attachments[0].url
+                                if url[0:26] == "https://cdn.discordapp.com":
+                                    r = requests.get(url, stream=True)
+                                    imageName = f'{i.id}.png'
+                                    with open(f'./{i.guild.id}/{imageName}', 'wb') as f:
+                                        log(guild, f'Añadiendo {imageName} a la carpeta con id {i.guild.id}',3)
+                                        shutil.copyfileobj(r.raw, f)
+                                    img = Image.open(f'./{i.guild.id}/{imageName}')
+                                    img = img.resize((320, 320), Image.NEAREST)
+                                    img.save(f'./{i.guild.id}/{imageName}')
+                                    count += 1
                             await message.author.send(f'Se han conseguido {count} imágenes en el canal challenge **[{message.channel.name}#{message.channel.id}]**')
                         except FileNotFoundError:
                             await message.author.send('Primero establece el canal como un canal challenge usando el comando: capi -challenge -set')
