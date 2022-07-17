@@ -86,9 +86,9 @@ class CapiBot(discord.Client):
                 try:
                     #Manejar los attachments uno por uno
                     for i in message.attachments:
-                        filename = i.filename
+                        url = i.url
                         #Verificar .png o .gif
-                        if not (filename[-4:] == '.png' or filename[-4:] == '.gif'):
+                        if not formatValid(url):
                             #Archivos invalidos
                             log(guild,f'Formato de imagen incorrecto del usuario: {message.author} en el canal de pixel-art')
                             await message.delete()
@@ -340,7 +340,7 @@ class CapiBot(discord.Client):
                         try:
                             for i in data:
                                 url = i.attachments[0].url
-                                if url[0:26] == "https://cdn.discordapp.com":
+                                if formatValid(url,jpg=True):
                                     r = requests.get(url, stream=True)
                                     imageName = f'{i.id}.png'
                                     with open(f'./{i.guild.id}/{imageName}', 'wb') as f:
@@ -369,9 +369,9 @@ class CapiBot(discord.Client):
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 ##Guardar pics
                 try:
-                    await message.add_reaction('❤')
                     url = message.attachments[0].url
-                    if (str(message.author) != str(self.user)) and (url[0:26] == "https://cdn.discordapp.com"):   # look to see if url is from discord
+                    if ((str(message.author) != str(self.user)) and (formatValid(url, jpg=True))):   # look to see if url is from discord
+                        await message.add_reaction('❤')
                         r = requests.get(url, stream=True)
                         imageName = f'{message.id}.png'
                         with open(f'./{message.guild.id}/{imageName}', 'wb') as f:
@@ -387,17 +387,17 @@ class CapiBot(discord.Client):
             log('EXCEPTION',e)
 
     async def on_message_delete(self, message):
-
         """
         Interacción en el canal challenge, donde los mensajes eliminados, se eliminan los respectivos
         dibujos guardados.
         """
+
         try:
             ##Para el canal de challenge
             if message.channel.id == c_challenge[str(message.guild.id)]:
                 #Eliminar pics
                 try:
-                    log(guild,f'Quitando {message.id}.png de la carpeta id {message.guild.id}')
+                    log(message.guild,f'Quitando {message.id}.png de la carpeta id {message.guild.id}')
                     remove(f'./{message.guild.id}/{message.id}.png')
                 except Exception as e:
                     log('EXCEPTION',e)
@@ -449,6 +449,18 @@ def makeGif(guild,who,channel,input,output,time):
     except Exception as e:
         log(guild,f'>Error en la solicitud de un gif de {who} para el canal {channel}',3)
         return False
+
+def formatValid(url, jpg=False):
+    if not jpg:
+        if ((url[0:26] == "https://cdn.discordapp.com") and ((url[-4:] == '.png') or (url[-4:] == '.gif'))):
+            return True
+        else:
+            return False
+    else:
+        if ((url[0:26] == "https://cdn.discordapp.com") and ((url[-4:] == '.png') or (url[-4:] == '.gif') or (url[-4:] == '.jpg'))):
+            return True
+        else:
+            return False
 
 def podiumSort(podium,reactions):
     sorted = [0,0,0]
