@@ -8,6 +8,7 @@ import logging
 import logging.config
 import json
 import math
+import numpy as np
 
 ##LIBRERIAS PARA EL GIF
 import requests
@@ -53,6 +54,9 @@ with open('./res/data.json', 'r') as f:
 with open('./res/data.json', 'r') as f:
     c_pngOnly = json.load(f)["pngOnly"]
 
+with open('./res/data.json', 'r') as f:
+    c_rev = json.load(f)["rev"]
+
 class CapiBot(discord.Client):
     ###Cuando inicia
     async def on_ready(self):
@@ -68,7 +72,7 @@ class CapiBot(discord.Client):
         log('MAIN','======================================================================')
 
     async def on_message(self, message):
-        global c_items,c_sizes,c_palettes,c_capi,c_challenge,c_pngOnly
+        global c_items,c_sizes,c_palettes,c_capi,c_challenge,c_pngOnly,c_rev
         """
         Base para la interacción entre el bot y los usuarios
         """
@@ -121,7 +125,7 @@ class CapiBot(discord.Client):
                         log(guild,'>Llamando el comando de: hola',1)
                         await message.reply('Hola! :heart:')
                     #Idea
-                    if 'idea' in message.content.lower():
+                    if ('idea' in message.content.lower()) or ('dibujo' in message.content.lower()) or ('dibujar' in message.content.lower()):
                         log(guild,'>Llamando el comando de: idea',1)
                         await message.reply(f'>💡  Puedes dibujar algo relacionado con **[ {random.choice(c_items).upper()} ]**')
 
@@ -220,6 +224,31 @@ class CapiBot(discord.Client):
                         else:
                             log(guild,f'>Id {message.id} rechazada en el eliminado en pngOnly de data.json',3)
                         c_pngOnly = loadJson('./res/data.json')["pngOnly"]
+                    #AÑADIR CANAL PNGONLY
+                    elif ('-revAdd' in message.content):
+                        log(guild,f'>Llamando el subcomando privado de -capi: -revAdd para {message.author} en el canal {message.channel}',2)
+                        data = loadJson('./res/data.json')
+                        if not message.channel.id in data["rev"]:
+                            data["rev"].append(message.channel.id)
+                            dumpJson('./res/data.json',data)
+                            log(guild,f'>Id {message.id} guardado en rev de data.json',3)
+                            await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** ha sido establecido como un canal rev')
+                        else:
+                            log(guild,f'>Id {message.id} rechazada en el guardado en rev de data.json',3)
+                            await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** ya está establecido como un canal rev')
+                        c_rev = loadJson('./res/data.json')["rev"]
+                    #QUITAR CANAL PNGONLY
+                    elif ('-revDel' in message.content):
+                        log(guild,f'>Llamando el subcomando privado de -capi: -revDel para {message.author} en el canal {message.channel}',2)
+                        data = loadJson('./res/data.json')
+                        if message.channel.id in data["rev"]:
+                            data["rev"].remove(message.channel.id)
+                            dumpJson('./res/data.json',data)
+                            log(guild,f'>Id {message.id} eliminado de rev en data.json',3)
+                            await message.author.send(f'El canal **[{message.channel.name}#{message.channel.id}]** ha sido eliminado como un canal rev')
+                        else:
+                            log(guild,f'>Id {message.id} rechazada en el eliminado en rev de data.json',3)
+                        c_rev = loadJson('./res/data.json')["rev"]
                     #LLAMADO CUANDO NO SE ESCRIBE UN SUBCOMANDO VALIDO
                     else:
                         await message.author.send('El comando -capi requiere de un subcomando válido para operar. Consulta el manual de usuario.')
@@ -391,6 +420,66 @@ class CapiBot(discord.Client):
         except Exception as e:
             log('EXCEPTION',e)
 
+        """
+        Interacción en el canal rev, donde las imagenes subidas se reescalan
+        """
+        ##Para el canal de challenge
+        if (str(message.author) != str(self.user)):
+            if (message.channel.id in c_rev):
+                ##Guardar pics
+                await message.delete()
+                try:
+                    url = message.attachments[0].url
+                    if ((str(message.author) != str(self.user)) and (formatValid(url))):   # look to see if url is from discord
+                        r = requests.get(url, stream=True)
+                        imageName = f'{message.id}.png'
+                        with open(f'./{imageName}', 'wb') as f:
+                            log(guild, f'Añadiendo {imageName} a la carpeta con id {message.guild.id}')
+                            shutil.copyfileobj(r.raw, f)
+                        i = Image.open(f'./{imageName}')
+                        options = {}
+                        possible = []
+                        pixels = i.load()
+                        for size in range(1,21):
+                            results = []
+                            w, h = i.size
+                            w /= size
+                            h /= size
+                            if (w % 1 > 0) or (h % 1 > 0):
+                                pass
+                            else:
+                                if w*h < 1100:
+                                    iters = w*h
+                                else:
+                                    iters = 1100
+                                for tries in range(int(iters)):
+                                    colors = []
+                                    x = random.choice(list(range(int(w))))
+                                    y = random.choice(list(range(int(h))))
+                                    for j in range(size):
+                                        for k in range(size):
+                                            if pixels[(x*size)+j,(y*size)+k] not in colors:
+                                                colors.append(pixels[(x*size)+j,(y*size)+k])
+                                    if len(colors) > 1:
+                                        results.append('n')
+                                    else:
+                                        results.append('y')
+                            if len(results) > 1:
+                                options[size] = results
+                        for ikeys in list(options.keys()):
+                            if not 'n' in options[ikeys]:
+                                possible.append(ikeys)
+                        wow = np.max(possible)
+                        resultImage = i.resize((int(i.size[0]/wow),int(i.size[1]/wow)),Image.NEAREST)
+                        resultImage.save(f'./workingDDD.png')
+                        await message.channel.send(file=discord.File(f'./workingDDD.png'), content=f'Escala detectada: {wow}, de ‎‎<@{message.author.id}>')
+                        await message.channel.send(file=discord.File(f'./{message.id}.png'), content='')
+                        remove(f'./workingDDD.png')
+                        remove(f'./{message.id}.png')
+                except IndexError as e:
+                    log('EXCEPTION',e)
+
+
     async def on_message_delete(self, message):
         """
         Interacción en el canal challenge, donde los mensajes eliminados, se eliminan los respectivos
@@ -432,7 +521,7 @@ def authRole(guild,who,*roles):
     log(guild,f'Autentificación solicitada por {who}')
     auth = False
     for i in roles:
-        if ('ADMIN' in str(i)) or ('CONFIGURADOR' in str(i)):
+        if ('admin' in str(i).lower()) or ('configurador' in str(i).lower()):
             auth = True
     if auth:
         log(guild,f'>Autentificación aprobada a {who}',1)
@@ -495,4 +584,4 @@ def dumpJson(dir,data):
     with open(dir, 'w') as f:
         json.dump(data, f, indent = 4)
 
-CapiBot().run('xx')
+CapiBot().run('OTk2MjQ1MzA2Mzk0MDM4MzYz.GzVd6n._kYR3gXWelXVNP4BzewH4tIsZqXgqYcsyZftUk')
